@@ -246,13 +246,13 @@ def is_qos(mac):
     return is_qos_null(mac) or is_qos_data(mac)
 
 def ieee80211_parse(packet, offset):
-    hdr_fmt = "<HH6s"
+    hdr_fmt = "<HH6s6s6sH6s"
     hdr_len = struct.calcsize(hdr_fmt)
 
     if len(packet) - offset < hdr_len:
         return 0, {}
 
-    fc, duration, addr1 = \
+    fc, duration, addr1, addr2, addr3, seq, addr4 = \
         struct.unpack_from(hdr_fmt, packet, offset)
 
     offset += hdr_len
@@ -290,8 +290,14 @@ def ieee80211_parse(packet, offset):
     mac.update({
         'addr2': macstr(addr2),
         'addr3': macstr(addr3),
+        'addr4': macstr(addr4),
         'seq': seq >> 4,
         'frag': seq & 3
+        'type': (fc >> 2) & 3,
+        'subtype': (fc >> 4) & 15,
+        'to_ds': (fc >> 8) & 1,
+        'from_ds': (fc >> 9) & 1,
+        'data': packet[offset+26:-4],
     })
 
     if is_qos(mac):
