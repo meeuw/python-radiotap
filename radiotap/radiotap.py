@@ -192,6 +192,7 @@ def radiotap_parse(packet):
     header = struct.unpack_from(radiotap_header_fmt, packet)
 
     version, pad, radiotap_len, present = header
+    present = long(present)
     if version != 0 or pad != 0 or radiotap_len > len(packet):
         return 0, {}
 
@@ -208,7 +209,7 @@ def radiotap_parse(packet):
 
     radiotap = {}
     for i in range(0, 32 * count):
-        if present & (1 << i):
+        if present & (1L << i):
             offset, fields = _parse_radiotap_field(i, packet, offset)
             radiotap.update(fields)
             if offset == radiotap_len or offset is None:
